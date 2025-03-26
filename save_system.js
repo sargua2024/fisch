@@ -171,8 +171,8 @@ function updateSaveTimeDisplay(saveTime) {
     const saveTimeDisplay = document.createElement('div');
     saveTimeDisplay.textContent = `上次存檔: ${saveTime}`;
     saveTimeDisplay.style.position = 'fixed';
-    saveTimeDisplay.style.bottom = '30px';
-    saveTimeDisplay.style.right = '10px';
+    saveTimeDisplay.style.bottom = '10px';
+    saveTimeDisplay.style.left = '120px';
     saveTimeDisplay.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
     saveTimeDisplay.style.padding = '5px 10px';
     saveTimeDisplay.style.borderRadius = '5px';
@@ -186,13 +186,25 @@ function updateSaveTimeDisplay(saveTime) {
 
 // 自動保存遊戲
 function autoSaveGame() {
-    saveGame();
+    try {
+        const saveTime = new Date().toLocaleString();
+        const saveData = {
+            gameData: window.gameData,
+            saveTime: saveTime,
+            version: window.gameData.version
+        };
+        const saveString = JSON.stringify(saveData);
+        localStorage.setItem('fishingGameSave', saveString);
+        updateSaveTimeDisplay(saveTime);
+    } catch (error) {
+        console.error('自動保存失敗:', error);
+    }
 }
 
 // 創建存檔按鈕
 function createSaveButtons() {
     // 檢查是否已存在存檔按鈕
-    if (document.getElementById('saveButton') || document.getElementById('loadButton')) {
+    if (document.getElementById('saveButton')) {
         return;
     }
     
@@ -204,7 +216,7 @@ function createSaveButtons() {
     const saveButton = document.createElement('button');
     saveButton.id = 'saveButton';
     saveButton.className = 'shop-button';
-    saveButton.textContent = '保存遊戲';
+    saveButton.textContent = '立刻存檔';
     saveButton.onclick = saveGame;
     saveButton.style.backgroundColor = '#2196F3';
     saveButton.style.background = 'linear-gradient(to bottom, #2196F3, #0d8bf2)';
@@ -212,20 +224,21 @@ function createSaveButtons() {
     saveButton.style.position = 'relative';
     saveButton.style.marginTop = '10px';
     
-    // 創建讀檔按鈕
-    const loadButton = document.createElement('button');
-    loadButton.id = 'loadButton';
-    loadButton.className = 'shop-button';
-    loadButton.textContent = '讀取遊戲';
-    loadButton.onclick = loadGame;
-    loadButton.style.backgroundColor = '#FF9800';
-    loadButton.style.background = 'linear-gradient(to bottom, #FF9800, #e68900)';
-    loadButton.style.zIndex = '50';
-    loadButton.style.position = 'relative';
+    // 創建聯絡作者按鈕
+    const contactButton = document.createElement('button');
+    contactButton.id = 'contactButton';
+    contactButton.className = 'shop-button';
+    contactButton.textContent = '聯絡作者';
+    contactButton.onclick = () => window.open('https://docs.google.com/forms/d/e/1FAIpQLSerpLNIVX0gqPUvzNmrbGfZnBiHIKYcqDi3qPjCKelg0cu9-w/viewform?usp=dialog', '_blank');
+    contactButton.style.backgroundColor = '#9C27B0';
+    contactButton.style.background = 'linear-gradient(to bottom, #9C27B0, #7B1FA2)';
+    contactButton.style.zIndex = '50';
+    contactButton.style.position = 'relative';
+    contactButton.style.marginTop = '10px';
     
     // 添加按鈕到側邊欄
     sidebar.appendChild(saveButton);
-    sidebar.appendChild(loadButton);
+    sidebar.appendChild(contactButton);
 }
 
 // 初始化存檔系統
@@ -233,20 +246,102 @@ function initSaveSystem() {
     // 創建存檔按鈕
     createSaveButtons();
     
-    // 檢查是否有存檔，如果有，顯示存檔時間
+    // 自動讀取存檔
     if (hasSaveGame()) {
+        loadGame();
+    }
+    
+    // 設置20秒自動存檔
+    setInterval(autoSaveGame, 20000);
+}
+
+// 檢查是否有存檔，如果有，顯示存檔時間
+function hasSaveGame() {
+    return localStorage.getItem('fishingGameSave') !== null;
+}
+
+// 更新遊戲界面
+function updateGameUI() {
+    // 更新金錢顯示
+    document.getElementById('money').textContent = window.gameData.money;
+    
+    // 更新當前釣竿顯示
+    document.getElementById('currentRod').textContent = window.gameData.currentRod.name;
+    
+    // 更新背包
+    if (typeof window.updateInventory === 'function') {
+        window.updateInventory();
+    }
+    
+    // 更新位置顯示
+    updateLocationDisplay();
+}
+
+// 更新位置顯示
+function updateLocationDisplay() {
+    const location = window.gameData.currentLocation;
+    
+    // 移除舊的位置顯示（如果有）
+    const oldLocationDisplay = document.getElementById('locationDisplay');
+    if (oldLocationDisplay) {
+        oldLocationDisplay.remove();
+    }
+    
+    // 創建新的位置顯示
+    const locationDisplay = document.createElement('div');
+    locationDisplay.textContent = `當前位置: ${location}`;
+    locationDisplay.style.position = 'absolute';
+    locationDisplay.style.top = '10px';
+    locationDisplay.style.left = '10px';
+    locationDisplay.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+    locationDisplay.style.padding = '5px 10px';
+    locationDisplay.style.borderRadius = '5px';
+    locationDisplay.style.zIndex = '10';
+    locationDisplay.id = 'locationDisplay';
+    
+    document.getElementById('fishingSpot').appendChild(locationDisplay);
+}
+
+// 更新存檔時間顯示
+function updateSaveTimeDisplay(saveTime) {
+    // 移除舊的存檔時間顯示（如果有）
+    const oldSaveTimeDisplay = document.getElementById('saveTimeDisplay');
+    if (oldSaveTimeDisplay) {
+        oldSaveTimeDisplay.remove();
+    }
+    
+    // 如果沒有提供存檔時間，嘗試從localStorage獲取
+    if (!saveTime) {
         try {
             const saveString = localStorage.getItem('fishingGameSave');
-            const saveData = JSON.parse(saveString);
-            updateSaveTimeDisplay(saveData.saveTime);
+            if (saveString) {
+                const saveData = JSON.parse(saveString);
+                saveTime = saveData.saveTime;
+            }
         } catch (error) {
-            console.error('初始化存檔系統時讀取存檔失敗:', error);
+            console.error('獲取存檔時間失敗:', error);
+            return;
         }
     }
     
-    // 監聽遊戲數據變化，自動保存
-    // 由於JavaScript沒有內置的對象監聽機制，我們需要在關鍵操作後手動調用保存
-    // 這部分將在修改fisch.html時實現
+    // 如果仍然沒有存檔時間，不顯示
+    if (!saveTime) return;
+    
+    // 創建存檔時間顯示
+    const saveTimeDisplay = document.createElement('div');
+    saveTimeDisplay.textContent = `上次存檔: ${saveTime}`;
+    saveTimeDisplay.style.position = 'fixed';
+    saveTimeDisplay.style.bottom = '10px';
+    saveTimeDisplay.style.left = '120px';
+    saveTimeDisplay.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+    saveTimeDisplay.style.padding = '5px 10px';
+    saveTimeDisplay.style.borderRadius = '5px';
+    saveTimeDisplay.style.fontSize = '12px';
+    saveTimeDisplay.style.color = '#666';
+    saveTimeDisplay.style.zIndex = '1000';
+    saveTimeDisplay.id = 'saveTimeDisplay';
+    
+    document.body.appendChild(saveTimeDisplay);
 }
 
 // 導出函數

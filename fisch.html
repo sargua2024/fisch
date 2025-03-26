@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>釣魚冒險 indev-250325</title>
+    <title>釣魚冒險</title>
     <style>
         * {
             margin: 0;
@@ -347,6 +347,7 @@
                 <div class="progress-bar" id="progressBar"></div>
             </div>
             <button class="fish-button" onclick="startFishing()" style="z-index: 50; position: relative;">開始釣魚</button>
+            <div style="border: 2px solid #ccc; padding: 15px; margin-top: 20px; text-align: center;">廣告位招租，請聯絡作者</div>
         </div>
         <div class="sidebar">
             <div class="stats">
@@ -365,7 +366,7 @@
 
     <!-- 商店彈窗 -->
     <div id="shopModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" onclick="event.stopPropagation();">
             <h2>商店</h2>
             <div id="shopItems"></div>
             <span onclick="closeShop()" style="position: absolute; top: 10px; right: 15px; color: red; cursor: pointer; font-weight: bold;">X</span>
@@ -374,7 +375,7 @@
 
     <!-- 地圖彈窗 -->
     <div id="mapModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" onclick="event.stopPropagation();">
             <h2>探索地圖 <span style="font-size: 0.8em; color: #4CAF50;">(金錢: <span id="mapModalMoney">0</span>)</span></h2>
             <div id="mapLocations"></div>
             <span onclick="closeMap()" style="position: absolute; top: 10px; right: 15px; color: red; cursor: pointer; font-weight: bold;">X</span>
@@ -392,7 +393,7 @@
             },
             inventory: [],
             currentLocation: "淺灘",
-            version: "indev-250325" // 版本號
+            version: "indev-250326" // 版本號
         };
 
         // 釣竿商店數據
@@ -787,11 +788,25 @@
                 return;
             }
             
+            // 添加全部出售按鈕
+            const sellAllButton = document.createElement('button');
+            sellAllButton.textContent = '全部出售';
+            sellAllButton.style.width = '100%';
+            sellAllButton.style.padding = '8px';
+            sellAllButton.style.marginBottom = '10px';
+            sellAllButton.style.backgroundColor = '#ff9800';
+            sellAllButton.style.color = 'white';
+            sellAllButton.style.border = 'none';
+            sellAllButton.style.borderRadius = '5px';
+            sellAllButton.style.cursor = 'pointer';
+            sellAllButton.onclick = sellAllFish;
+            inventoryList.appendChild(sellAllButton);
+            
             const fishCounts = {};
             gameData.inventory.forEach(fish => {
                 fishCounts[fish.name] = (fishCounts[fish.name] || 0) + 1;
             });
-
+    
             for (let fishName in fishCounts) {
                 const fish = gameData.inventory.find(f => f.name === fishName);
                 const div = document.createElement('div');
@@ -822,20 +837,64 @@
 
         // 賣出魚
         function sellFish(fishName) {
-            // 使用帶有轉盤遊戲功能的函數
-            sellFishWithWheel(fishName);
-            
-            // 自動保存遊戲
-            if (typeof autoSaveGame === 'function') {
-                setTimeout(autoSaveGame, 1000); // 延遲1秒保存，確保轉盤遊戲結果已處理
+            const fishToSell = gameData.inventory.filter(fish => fish.name === fishName);
+            if (fishToSell.length > 0) {
+                const totalPrice = fishToSell[0].price * fishToSell.length;
+                gameData.money += totalPrice;
+                gameData.inventory = gameData.inventory.filter(fish => fish.name !== fishName);
+                updateInventory();
+                gameAlert(`賣出 ${fishToSell.length} 條 ${fishName}，獲得 ${totalPrice} 金幣！`, 'success', '出售成功', 3000);
+                
+                // 自動保存遊戲
+                if (typeof autoSaveGame === 'function') {
+                    autoSaveGame();
+                }
             }
         }
 
+        // 一次性出售所有魚
+        function sellAllFish() {
+            if (gameData.inventory.length === 0) {
+                gameAlert('背包是空的，沒有魚可以賣出！', 'info', '提示', 3000);
+                return;
+            }
+
+            const fishCounts = {};
+            let totalPrice = 0;
+            
+            gameData.inventory.forEach(fish => {
+                fishCounts[fish.name] = (fishCounts[fish.name] || 0) + 1;
+                totalPrice += fish.price;
+            });
+
+            gameData.money += totalPrice;
+            gameData.inventory = [];
+            updateInventory();
+
+            const fishList = Object.entries(fishCounts)
+                .map(([name, count]) => `${name} x${count}`)
+                .join('、');
+
+            gameAlert(`賣出所有魚：${fishList}，共獲得 ${totalPrice} 金幣！`, 'success', '出售成功', 4000);
+
+            // 自動保存遊戲
+            if (typeof autoSaveGame === 'function') {
+                autoSaveGame();
+            }
+        }
+        
         // 商店功能
         function openShop() {
             const shopModal = document.getElementById('shopModal');
             const shopItems = document.getElementById('shopItems');
             shopItems.innerHTML = '';
+            
+            // 添加點擊空白區域關閉功能
+            shopModal.onclick = (e) => {
+                if (e.target === shopModal) {
+                    closeShop();
+                }
+            };
 
             rods.forEach(rod => {
                 if (rod.name !== gameData.currentRod.name) {
@@ -903,6 +962,13 @@
             const mapModal = document.getElementById('mapModal');
             const mapLocations = document.getElementById('mapLocations');
             mapLocations.innerHTML = '';
+            
+            // 添加點擊空白區域關閉功能
+            mapModal.onclick = (e) => {
+                if (e.target === mapModal) {
+                    closeMap();
+                }
+            };
 
             Object.keys(fishes).forEach(location => {
                 const div = document.createElement('div');
@@ -1062,20 +1128,7 @@
             locationDisplay.id = 'locationDisplay';
             document.getElementById('fishingSpot').appendChild(locationDisplay);
             
-            // 添加版本號顯示
-            const versionDisplay = document.createElement('div');
-            versionDisplay.textContent = `${gameData.version}`;
-            versionDisplay.style.position = 'fixed';
-            versionDisplay.style.bottom = '10px';
-            versionDisplay.style.right = '10px';
-            versionDisplay.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
-            versionDisplay.style.padding = '5px 10px';
-            versionDisplay.style.borderRadius = '5px';
-            versionDisplay.style.fontSize = '12px';
-            versionDisplay.style.color = '#666';
-            versionDisplay.style.zIndex = '1000';
-            versionDisplay.id = 'versionDisplay';
-            document.body.appendChild(versionDisplay);
+
         }
         
         // 啟動遊戲
@@ -1088,6 +1141,10 @@
     <script src="notification.js"></script>
     <!-- 引入存檔系統JS文件 -->
     <script src="save_system.js"></script>
+    <!-- 引入更新日誌系統JS文件 -->
+    <script src="changelog.js"></script>
+    <!-- 引入版本號顯示系統JS文件 -->
+    <script src="version_display.js"></script>
     
     <script>
         // 在頁面加載完成後，初始化遊戲
@@ -1099,11 +1156,21 @@
             if (typeof initSaveSystem === 'function') {
                 initSaveSystem();
             }
+            
+            // 初始化更新日誌系統
+            if (typeof initChangelogSystem === 'function') {
+                initChangelogSystem();
+            }
+
+            // 初始化版本號顯示系統
+            if (typeof initVersionDisplay === 'function') {
+                initVersionDisplay();
+            }
         }
     </script>
     
     <!-- 版權信息 -->
-    <div style="position: fixed; bottom: 10px; left: 10px; background-color: rgba(0, 0, 0, 0.5); color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; z-index: 1000;">
+    <div style="position: fixed; bottom: 10px; left: 10px; background-color: rgba(255, 255, 255, 0.7); color: #666; padding: 5px 10px; border-radius: 5px; font-size: 12px; z-index: 1000;">
         © sarguastudio
     </div>
 </body>
