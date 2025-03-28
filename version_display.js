@@ -14,7 +14,7 @@ function createVersionDisplay() {
     versionDisplay.style.zIndex = '1000';
     
     // 從gameData中獲取版本號
-    const version = window.gameData ? window.gameData.version : '1.0.0';
+    const version = window.gameData ? window.gameData.version : 'indev-250328';
     versionDisplay.textContent = `${version}`;
     
     document.body.appendChild(versionDisplay);
