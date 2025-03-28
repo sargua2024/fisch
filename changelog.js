@@ -3,6 +3,15 @@
 // 更新日誌數據
 const changelogData = [
     {
+        version: 'indev-250328',
+        date: '2025/3/28',
+        changes: [
+            '修復釣魚進度條歸零釣魚不會失效的bug',
+            '重寫釣魚系統，添加了稀有度與重量機制',
+            '作者多喝了2000杯咖啡(並沒有)'
+        ]
+    },
+    {
         version: 'indev-250326',
         date: '2025/3/26',
         changes: [

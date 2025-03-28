@@ -393,7 +393,7 @@
             },
             inventory: [],
             currentLocation: "淺灘",
-            version: "indev-250326" // 版本號
+            version: "indev-250328" // 版本號
         };
 
         // 釣竿商店數據
@@ -409,37 +409,37 @@
         // 魚類數據
         const fishes = {
             淺灘: [
-                { name: "小鯉魚", price: 10, chance: 0.7 },
-                { name: "河豚", price: 20, chance: 0.3 }
+                { name: "小鯉魚", rarity: "常見的", color: "#808080", basePrice: 10, decayRate: 0.3, weightRange: [0.1, 10], chance: 0.4 },
+                { name: "河豚", rarity: "不常見的", color: "#4CAF50", basePrice: 50, decayRate: 0.4, weightRange: [0.5, 8], chance: 0.2 }
             ],
             深海: [
-                { name: "金槍魚", price: 50, chance: 0.4 },
-                { name: "鯊魚", price: 100, chance: 0.1 }
+                { name: "金槍魚", rarity: "稀有", color: "#2196F3", basePrice: 100, decayRate: 0.5, weightRange: [5, 50], chance: 0.2 },
+                { name: "鯊魚", rarity: "傳奇", color: "#FFEB3B", basePrice: 1000, decayRate: 0.6, weightRange: [50, 200], chance: 0.1 }
             ],
             珊瑚礁: [
-                { name: "熱帶魚", price: 30, chance: 0.6 },
-                { name: "章魚", price: 80, chance: 0.2 }
+                { name: "熱帶魚", rarity: "常見的", color: "#808080", basePrice: 10, decayRate: 0.3, weightRange: [0.1, 2], chance: 0.4 },
+                { name: "章魚", rarity: "稀有", color: "#2196F3", basePrice: 100, decayRate: 0.5, weightRange: [1, 10], chance: 0.2 }
             ],
             湖泊: [
-                { name: "黑鱸魚", price: 25, chance: 0.5 },
-                { name: "鱘魚", price: 70, chance: 0.3 },
-                { name: "巨型鯰魚", price: 120, chance: 0.2 }
+                { name: "黑鱸魚", rarity: "常見的", color: "#808080", basePrice: 10, decayRate: 0.3, weightRange: [0.5, 5], chance: 0.4 },
+                { name: "鱘魚", rarity: "不常見的", color: "#4CAF50", basePrice: 50, decayRate: 0.4, weightRange: [2, 15], chance: 0.2 },
+                { name: "巨型鯰魚", rarity: "神話", color: "#F44336", basePrice: 1500, decayRate: 1.0, weightRange: [10, 100], chance: 0.08 }
             ],
             河流: [
-                { name: "鱒魚", price: 15, chance: 0.6 },
-                { name: "鮭魚", price: 40, chance: 0.3 },
-                { name: "彩虹魚", price: 90, chance: 0.1 }
+                { name: "鱒魚", rarity: "常見的", color: "#808080", basePrice: 10, decayRate: 0.3, weightRange: [0.2, 3], chance: 0.4 },
+                { name: "鮭魚", rarity: "不常見的", color: "#4CAF50", basePrice: 50, decayRate: 0.4, weightRange: [1, 8], chance: 0.2 },
+                { name: "彩虹魚", rarity: "神聖", color: "#3F51B5", basePrice: 10000, decayRate: 1.5, weightRange: [0.5, 5], chance: 0.02 }
             ],
             深淵: [
-                { name: "深海鰻", price: 150, chance: 0.4 },
-                { name: "發光魚", price: 200, chance: 0.3 },
-                { name: "深淵巨獸", price: 500, chance: 0.05 },
-                { name: "幽靈魚", price: 300, chance: 0.25 }
+                { name: "深海鰻", rarity: "稀有", color: "#2196F3", basePrice: 100, decayRate: 0.5, weightRange: [1, 20], chance: 0.2 },
+                { name: "發光魚", rarity: "傳奇", color: "#FFEB3B", basePrice: 1000, decayRate: 0.6, weightRange: [0.5, 10], chance: 0.1 },
+                { name: "深淵巨獸", rarity: "神話", color: "#F44336", basePrice: 1500, decayRate: 1.0, weightRange: [50, 500], chance: 0.08 },
+                { name: "幽靈魚", rarity: "*極限", color: "linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)", basePrice: 100000, decayRate: 2, weightRange: [0.1, 1], chance: 0 }
             ],
             冰湖: [
-                { name: "冰魚", price: 60, chance: 0.5 },
-                { name: "雪花魚", price: 120, chance: 0.3 },
-                { name: "冰晶龍魚", price: 350, chance: 0.2 }
+                { name: "冰魚", rarity: "常見的", color: "#808080", basePrice: 10, decayRate: 0.3, weightRange: [0.2, 3], chance: 0.4 },
+                { name: "雪花魚", rarity: "稀有", color: "#2196F3", basePrice: 100, decayRate: 0.5, weightRange: [0.5, 5], chance: 0.2 },
+                { name: "冰晶龍魚", rarity: "神聖", color: "#3F51B5", basePrice: 10000, decayRate: 1.5, weightRange: [1, 10], chance: 0.02 }
             ]
         };
         
@@ -459,11 +459,13 @@
         let fishCaught = null;
         let progressInterval = null;
         let progressValue = 0;
-        let progressDecay = 1.5; // 調整衰減速率為0.5，使遊戲更平衡
+        let progressDecay = 0.3; // 基礎衰減速率
         let clickPower = 8; // 增加點擊力量，從5改為8
         let fishingStage = 0; // 0: 未釣魚, 1: 釣竿階段, 2: 進度條階段
         let rodTouchCount = 0; // 記錄玩家觸碰釣竿按鈕的次數
         let rodTouchTarget = 0; // 需要觸碰的目標次數
+        let currentRodLuck = 0; // 當前釣竿的運氣加成
+        let currentRodPower = 0; // 當前釣竿的力量加成
 
         // 釣魚超時計時器ID
         let fishingTimeoutId = null;
@@ -574,7 +576,7 @@
                         fishingSpot.onclick = function() {
                             console.log('釣魚區域被點擊，當前階段:', fishingStage);
                             if (isFishing && fishCaught && fishingStage === 2) {
-                                progressValue += clickPower;
+                                progressValue += clickPower * (1 + currentRodPower * 0.1); // 高級釣竿增加點擊效果
                                 console.log('進度增加，當前進度:', progressValue);
                                 if (progressValue > 100) progressValue = 100;
                                 progressBar.style.width = progressValue + '%';
@@ -608,7 +610,7 @@
                             
                             // 進度條隨時間衰減
                             console.log('進度條衰減中，當前進度:', progressValue);
-                            progressValue -= progressDecay; // 恢復進度條衰減
+                            progressValue -= progressDecay * 5; // 增加進度條衰減速度
                             progressBar.style.width = progressValue + '%';
                             
                             // 由於progressDecay為0，進度不會降到0，但保留檢查邏輯以防萬一
@@ -649,13 +651,46 @@
         // 檢查是否有魚上鉤
         function checkForFish() {
             const locationFishes = fishes[gameData.currentLocation];
-            // 隨機選擇一條魚
-            const randomIndex = Math.floor(Math.random() * locationFishes.length);
-            const selectedFish = locationFishes[randomIndex];
+            let totalChance = 0;
             
-            // 直接返回選中的魚，確保100%上鉤率
-            console.log('魚已上鉤：', selectedFish.name, '，100%上鉤率已生效');
-            return selectedFish;
+            // 計算運氣加成後的機率
+            locationFishes.forEach(fish => {
+                let adjustedChance = fish.chance;
+                if (fish.rarity !== "*極限") {
+                    // 運氣加成：高級釣竿增加稀有魚的機率
+                    adjustedChance *= (1 + currentRodLuck * 0.1);
+                }
+                totalChance += adjustedChance;
+            });
+            
+            let random = Math.random() * totalChance;
+            let sum = 0;
+            
+            for (const fish of locationFishes) {
+                let adjustedChance = fish.chance;
+                if (fish.rarity !== "*極限") {
+                    adjustedChance *= (1 + currentRodLuck * 0.1);
+                }
+                sum += adjustedChance;
+                if (random <= sum) {
+                    // 計算魚的重量
+                    const [minWeight, maxWeight] = fish.weightRange;
+                    const weight = Math.random() * (maxWeight - minWeight) + minWeight;
+                    
+                    const selectedFish = {
+                        ...fish,
+                        weight: parseFloat(weight.toFixed(2)),
+                        price: Math.round(fish.basePrice * weight),
+                        value: Math.round(fish.basePrice * weight)
+                    };
+                    
+                    // 設置進度條下降速度
+                    progressDecay = fish.decayRate;
+                    
+                    console.log('魚已上鉤：', selectedFish.name, '，重量:', selectedFish.weight, 'kg');
+                    return selectedFish;
+                }
+            }
         }
         
         // 完成釣魚
@@ -817,7 +852,11 @@
                 div.style.borderBottom = '1px solid #eee';
                 
                 const fishInfo = document.createElement('span');
-                fishInfo.textContent = `${fishName} x${fishCounts[fishName]} (${fish.price}金幣)`;
+                fishInfo.innerHTML = `
+                    <span style="color: ${fish.color}; font-weight: bold;">[${fish.rarity}]</span>
+                    <span style="color: black;"> ${fishName} x${fishCounts[fishName]}</span>
+                    <span style="color: black;"> ${fish.weight}kg</span>
+                `;
                 div.appendChild(fishInfo);
                 
                 const sellButton = document.createElement('button');

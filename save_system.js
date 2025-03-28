@@ -62,7 +62,7 @@ function loadGame() {
         // 檢查版本兼容性
         if (saveData.version !== window.gameData.version) {
             if (typeof gameAlert === 'function') {
-                gameAlert(`存檔版本(${saveData.version})與當前遊戲版本(${window.gameData.version})不同，可能會出現兼容性問題！`, 'warning', '版本警告', 5000);
+                gameAlert(`存檔版本(${saveData.version})與當前遊戲版本(${window.gameData.version})不同，可能會出現相容性問題！`, 'warning', '版本警告', 5000);
             }
         }
         
