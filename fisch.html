@@ -625,13 +625,12 @@
                             progressValue -= progressDecay * 5; // 增加進度條衰減速度
                             progressBar.style.width = progressValue + '%';
                             
-                            // 由於progressDecay為0，進度不會降到0，但保留檢查邏輯以防萬一
+                            // 當進度降到0時，魚會逃跑
                             if (progressValue <= 0) {
-                                console.log('進度為0，但不會自動失敗');
-                                // 不再自動結束釣魚
-                                // clearInterval(progressInterval);
-                                // progressInterval = null;
-                                // completeFishing(false);
+                                console.log('進度為0，魚逃跑了');
+                                clearInterval(progressInterval);
+                                progressInterval = null;
+                                completeFishing(false);
                             }
                         }, 100);
                         
