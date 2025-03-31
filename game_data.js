@@ -36,7 +36,7 @@ const fishes = {
     ],
     深海: [
         { name: "金槍魚", rarity: "稀有", color: "#2196F3", basePrice: 100, decayRate: 0.5, weightRange: [5, 50], chance: 0.2 },
-        { name: "鯊魚", rarity: "傳奇", color: "#FFEB3B", basePrice: 1000, decayRate: 0.6, weightRange: [50, 200], chance: 0.1 }
+        { name: "鯊魚", rarity: "傳奇", color: "#FFEB3B", basePrice: 500, decayRate: 0.6, weightRange: [50, 200], chance: 0.1 }
     ],
     珊瑚礁: [
         { name: "熱帶魚", rarity: "常見的", color: "#808080", basePrice: 10, decayRate: 0.3, weightRange: [0.1, 2], chance: 0.4 },
@@ -50,12 +50,15 @@ const fishes = {
     河流: [
         { name: "鱒魚", rarity: "常見的", color: "#808080", basePrice: 10, decayRate: 0.3, weightRange: [0.2, 3], chance: 0.4 },
         { name: "鮭魚", rarity: "不常見的", color: "#4CAF50", basePrice: 50, decayRate: 0.4, weightRange: [1, 8], chance: 0.2 },
+        { name: "泥鰍", rarity: "不常見的", color: "#795548", basePrice: 40, decayRate: 0.5, weightRange: [0.1, 1], chance: 0.15 },
+        { name: "河蟹", rarity: "稀有", color: "#9E9E9E", basePrice: 80, decayRate: 0.6, weightRange: [0.3, 2], chance: 0.1 },
         { name: "彩虹魚", rarity: "神聖", color: "#3F51B5", basePrice: 10000, decayRate: 1.5, weightRange: [0.5, 5], chance: 0.02 }
     ],
     深淵: [
         { name: "深海鰻", rarity: "稀有", color: "#2196F3", basePrice: 100, decayRate: 0.5, weightRange: [1, 20], chance: 0.2 },
         { name: "發光魚", rarity: "傳奇", color: "#FFEB3B", basePrice: 1000, decayRate: 0.6, weightRange: [0.5, 10], chance: 0.1 },
-        { name: "深淵巨獸", rarity: "神話", color: "#F44336", basePrice: 1500, decayRate: 1.0, weightRange: [50, 500], chance: 0.08 },
+        { name: "深海龍蝦", rarity: "稀有", color: "#F44336", basePrice: 120, decayRate: 0.55, weightRange: [0.5, 5], chance: 0.15 },
+        { name: "深淵巨獸", rarity: "神話", color: "#9C27B0", basePrice: 1500, decayRate: 1.0, weightRange: [50, 500], chance: 0.08 },
         { name: "幽靈魚", rarity: "*極限", color: "linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)", basePrice: 100000, decayRate: 2, weightRange: [0.1, 1], chance: 0 }
     ],
     冰湖: [

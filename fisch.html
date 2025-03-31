@@ -1126,10 +1126,6 @@
                 fishInfo.style.marginTop = '5px';
                 fishInfo.style.marginLeft = '25px';
                 
-                const locationFishes = fishes[location];
-                fishInfo.textContent = `可釣到: ${locationFishes.map(f => f.name).join(', ')}`;
-                div.appendChild(fishInfo);
-                
                 div.onclick = () => changeLocation(location);
                 div.addEventListener('mouseover', () => {
                     div.style.backgroundColor = location === gameData.currentLocation ? '#b2ebf2' : '#f5f5f5';
