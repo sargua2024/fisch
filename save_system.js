@@ -66,8 +66,25 @@ function loadGame() {
             }
         }
         
+        // 保存當前版本號
+        const currentVersion = window.gameData.version;
+        
         // 將存檔數據應用到當前遊戲
         window.gameData = saveData.gameData;
+        
+        // 確保使用最新的版本號
+        window.gameData.version = currentVersion;
+        
+        // 確保關鍵屬性存在且為數字
+        if (typeof window.gameData.level !== 'number') {
+            window.gameData.level = 1; // 設置默認值
+        }
+        if (typeof window.gameData.exp !== 'number') {
+            window.gameData.exp = 0; // 設置默認值
+        }
+        if (typeof window.gameData.expThreshold !== 'number') {
+            window.gameData.expThreshold = 100; // 設置默認值
+        }
         
         // 更新遊戲界面
         updateGameUI();
@@ -108,9 +125,37 @@ function updateGameUI() {
     // 更新當前釣竿顯示
     document.getElementById('currentRod').textContent = window.gameData.currentRod.name;
     
+    // 確保level和exp屬性存在且為數字
+    if (typeof window.gameData.level !== 'number') {
+        window.gameData.level = 1; // 設置默認值
+    }
+    if (typeof window.gameData.exp !== 'number') {
+        window.gameData.exp = 0; // 設置默認值
+    }
+    if (typeof window.gameData.expThreshold !== 'number') {
+        window.gameData.expThreshold = 100; // 設置默認值
+    }
+    
+    // 更新等級顯示
+    document.getElementById('playerLevel').textContent = window.gameData.level;
+    document.getElementById('playerExp').textContent = Math.floor(window.gameData.exp);
+    document.getElementById('expThreshold').textContent = Math.floor(window.gameData.expThreshold);
+    
+    // 如果達到最大等級，顯示(最大)標籤
+    if (window.gameData.level >= 500) {
+        document.getElementById('maxLevelTag').textContent = ' (最大)';
+    } else {
+        document.getElementById('maxLevelTag').textContent = '';
+    }
+    
     // 更新背包
     if (typeof window.updateInventory === 'function') {
         window.updateInventory();
+    }
+    
+    // 更新版本號顯示
+    if (typeof window.updateVersionDisplay === 'function') {
+        window.updateVersionDisplay(window.gameData.version);
     }
     
     // 更新位置顯示
@@ -268,9 +313,37 @@ function updateGameUI() {
     // 更新當前釣竿顯示
     document.getElementById('currentRod').textContent = window.gameData.currentRod.name;
     
+    // 確保level和exp屬性存在且為數字
+    if (typeof window.gameData.level !== 'number') {
+        window.gameData.level = 1; // 設置默認值
+    }
+    if (typeof window.gameData.exp !== 'number') {
+        window.gameData.exp = 0; // 設置默認值
+    }
+    if (typeof window.gameData.expThreshold !== 'number') {
+        window.gameData.expThreshold = 100; // 設置默認值
+    }
+    
+    // 更新等級顯示
+    document.getElementById('playerLevel').textContent = window.gameData.level;
+    document.getElementById('playerExp').textContent = Math.floor(window.gameData.exp);
+    document.getElementById('expThreshold').textContent = Math.floor(window.gameData.expThreshold);
+    
+    // 如果達到最大等級，顯示(最大)標籤
+    if (window.gameData.level >= 500) {
+        document.getElementById('maxLevelTag').textContent = ' (最大)';
+    } else {
+        document.getElementById('maxLevelTag').textContent = '';
+    }
+    
     // 更新背包
     if (typeof window.updateInventory === 'function') {
         window.updateInventory();
+    }
+    
+    // 更新版本號顯示
+    if (typeof window.updateVersionDisplay === 'function') {
+        window.updateVersionDisplay(window.gameData.version);
     }
     
     // 更新位置顯示

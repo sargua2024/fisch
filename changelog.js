@@ -3,6 +3,15 @@
 // 更新日誌數據
 const changelogData = [
     {
+        version: 'indev-250331',
+        date: '2025/3/31',
+        changes: [
+            '增加等級系統',
+            '修復bug',
+            '再喝2000杯咖啡(沒有)'
+        ]
+    },
+    {
         version: 'indev-250328',
         date: '2025/3/28',
         changes: [
@@ -60,6 +69,8 @@ function showChangelog() {
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'flex';
+    modal.style.opacity = '1';
+    modal.style.pointerEvents = 'auto';
     modal.classList.add('show');
     modal.style.zIndex = '5000';
     

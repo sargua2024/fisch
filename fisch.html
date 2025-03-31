@@ -354,6 +354,8 @@
                 <h3>狀態</h3>
                 <p>金錢: <span id="money">100</span></p>
                 <p>當前釣竿: <span id="currentRod">初級釣竿</span></p>
+                <p style="color: black;">等級: <span id="playerLevel">1</span><span id="maxLevelTag"></span></p>
+                <p style="color: black;">經驗值: <span id="playerExp">0</span>/<span id="expThreshold">100</span></p>
             </div>
             <div class="inventory">
                 <h3>背包</h3>
@@ -400,7 +402,10 @@
             },
             inventory: [],
             currentLocation: "淺灘",
-            version: "indev-250328" // 版本號
+            version: "indev-250331", // 版本號
+            level: 1, // 玩家等級
+            exp: 0, // 當前經驗值
+            expThreshold: 100 // 升級所需經驗值門檻
         };
 
         // 釣竿商店數據
@@ -733,8 +738,43 @@
                 if (success && fishCaught) {
                     gameData.inventory.push(fishCaught);
                     updateInventory();
+                    
+                    // 根據魚的稀有度獎勵不同經驗值
+                    let expGained = 0;
+                    switch(fishCaught.rarity) {
+                        case "常見的":
+                            expGained = 100;
+                            break;
+                        case "不常見的":
+                            expGained = 200;
+                            break;
+                        case "稀有":
+                            expGained = 250;
+                            break;
+                        case "傳奇":
+                            expGained = 500;
+                            break;
+                        case "神話":
+                            expGained = 1000;
+                            break;
+                        case "神聖":
+                            expGained = 2000;
+                            break;
+                        case "傳說":
+                            expGained = 5000;
+                            break;
+                        case "*極限":
+                            expGained = 10000;
+                            break;
+                        default:
+                            expGained = 100;
+                    }
+                    
+                    // 增加經驗值並檢查是否升級
+                    addExperience(expGained);
+                    
                     setTimeout(() => {
-                        gameAlert(`恭喜！你釣到了 ${fishCaught.name}！`, 'success', '釣魚成功', 4000);
+                        gameAlert(`恭喜！你釣到了 ${fishCaught.name}！獲得 ${expGained} 經驗值！`, 'success', '釣魚成功', 4000);
                         
                         // 自動保存遊戲
                         if (typeof autoSaveGame === 'function') {
@@ -753,6 +793,54 @@
                 console.error('完成釣魚函數發生錯誤:', error);
                 // 確保即使出錯也能重置釣魚狀態
                 resetFishing();
+            }
+        }
+        
+        // 增加經驗值並處理升級
+        function addExperience(exp) {
+            // 如果已經達到最大等級，經驗值不能超過最大等級的門檻
+            if (gameData.level >= 500) {
+                gameData.exp = Math.min(gameData.exp + exp, gameData.expThreshold);
+                updateLevelDisplay();
+                return;
+            }
+            
+            // 增加經驗值
+            gameData.exp += exp;
+            
+            // 檢查是否達到升級門檻
+            while (gameData.exp >= gameData.expThreshold && gameData.level < 500) {
+                // 升級
+                gameData.level++;
+                // 扣除門檻經驗值
+                gameData.exp -= gameData.expThreshold;
+                // 計算新的門檻（1.5倍）
+                gameData.expThreshold = Math.round(gameData.expThreshold * 1.5);
+                
+                // 顯示升級消息
+                gameAlert(`恭喜！你升到了 ${gameData.level} 級！`, 'success', '等級提升', 3000);
+            }
+            
+            // 如果達到最大等級，限制經驗值不超過門檻
+            if (gameData.level >= 500) {
+                gameData.exp = Math.min(gameData.exp, gameData.expThreshold);
+            }
+            
+            // 更新等級顯示
+            updateLevelDisplay();
+        }
+        
+        // 更新等級顯示
+        function updateLevelDisplay() {
+            document.getElementById('playerLevel').textContent = gameData.level;
+            document.getElementById('playerExp').textContent = Math.floor(gameData.exp);
+            document.getElementById('expThreshold').textContent = Math.floor(gameData.expThreshold);
+            
+            // 如果達到最大等級，顯示(最大)標籤
+            if (gameData.level >= 500) {
+                document.getElementById('maxLevelTag').textContent = ' (最大)';
+            } else {
+                document.getElementById('maxLevelTag').textContent = '';
             }
         }
         
