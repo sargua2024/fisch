@@ -10,7 +10,7 @@ const gameDataDefault = {
     },
     inventory: [],
     currentLocation: "淺灘",
-    version: "indev-250401", // 版本號
+    version: "indev-250425", // 版本號
     level: 1, // 玩家等級
     exp: 0, // 當前經驗值
     expThreshold: 100, // 升級所需經驗值門檻

@@ -4,7 +4,7 @@
 const changelogData = [
     {
         version: 'indev-250425',
-        date: '2025/4/1',
+        date: '2025/4/25',
         changes: [
             '增加藥水系統',
             '正在籌畫任務系統、每日登入獎勵，預計於下個版本加入'        ]
