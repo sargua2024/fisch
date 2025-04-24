@@ -136,6 +136,20 @@ function updateGameUI() {
         window.gameData.expThreshold = 100; // 設置默認值
     }
     
+    // 確保藥水數據存在
+    if (!window.gameData.potions) {
+        window.gameData.potions = [];
+    }
+    
+    // 恢復藥水效果狀態
+    if (window.gameData.activePotions) {
+        window.activePotions = window.gameData.activePotions;
+    }
+    
+    if (window.gameData.potionUsesRemaining) {
+        window.potionUsesRemaining = window.gameData.potionUsesRemaining;
+    }
+    
     // 更新等級顯示
     document.getElementById('playerLevel').textContent = window.gameData.level;
     document.getElementById('playerExp').textContent = Math.floor(window.gameData.exp);
@@ -233,6 +247,16 @@ function updateSaveTimeDisplay(saveTime) {
 function autoSaveGame() {
     try {
         const saveTime = new Date().toLocaleString();
+        
+        // 確保藥水數據被保存
+        if (!window.gameData.potions) {
+            window.gameData.potions = [];
+        }
+        
+        // 保存藥水效果狀態
+        window.gameData.activePotions = window.activePotions || { luck: 0, power: 1 };
+        window.gameData.potionUsesRemaining = window.potionUsesRemaining || { luck: 0, power: 0 };
+        
         const saveData = {
             gameData: window.gameData,
             saveTime: saveTime,
@@ -322,6 +346,20 @@ function updateGameUI() {
     }
     if (typeof window.gameData.expThreshold !== 'number') {
         window.gameData.expThreshold = 100; // 設置默認值
+    }
+    
+    // 確保藥水數據存在
+    if (!window.gameData.potions) {
+        window.gameData.potions = [];
+    }
+    
+    // 恢復藥水效果狀態
+    if (window.gameData.activePotions) {
+        window.activePotions = window.gameData.activePotions;
+    }
+    
+    if (window.gameData.potionUsesRemaining) {
+        window.potionUsesRemaining = window.gameData.potionUsesRemaining;
     }
     
     // 更新等級顯示

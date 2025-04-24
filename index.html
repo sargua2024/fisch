@@ -331,6 +331,81 @@
             background: linear-gradient(to bottom, #45a049, #3d8b3d);
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
+        
+        /* 商店標籤頁樣式 */
+        .shop-tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .shop-tab {
+            padding: 8px 15px;
+            margin-right: 5px;
+            background: #f1f1f1;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .shop-tab.active {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+        
+        /* 藥水物品樣式 */
+        .potion-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        
+        .potion-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .potion-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        
+        .potion-name {
+            font-weight: bold;
+            color: #2e8cb8;
+        }
+        
+        .potion-description {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 3px;
+        }
+        
+        .potion-price {
+            font-weight: bold;
+        }
+        
+        .use-potion-btn {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        
+        .use-potion-btn:hover {
+            background: #f57c00;
+        }
     </style>
 </head>
 <body>
@@ -370,6 +445,10 @@
     <div id="shopModal" class="modal">
         <div class="modal-content" onclick="event.stopPropagation();">
             <h2>商店</h2>
+            <div class="shop-tabs">
+                <button id="rodTab" class="shop-tab active" onclick="switchShopTab('rod')">釣竿</button>
+                <button id="potionTab" class="shop-tab" onclick="switchShopTab('potion')">藥水</button>
+            </div>
             <div id="shopItems"></div>
             <span onclick="closeShop()" style="position: absolute; top: 10px; right: 15px; color: red; cursor: pointer; font-weight: bold;">X</span>
         </div>
@@ -398,6 +477,20 @@
         } else {
             console.error('GameData模組未載入，無法初始化遊戲數據');
         }
+        
+        // 使用GameData模組中的藥水數據
+        
+        // 當前激活的藥水效果
+        let activePotions = {
+            luck: 0,  // 額外運氣加成
+            power: 1  // 力量倍數，默認為1倍
+        };
+        
+        // 藥水使用次數計數
+        let potionUsesRemaining = {
+            luck: 0,
+            power: 0
+        };
 
         // 釣魚功能
         let isFishing = false;
@@ -521,7 +614,8 @@
                         fishingSpot.onclick = function() {
                             console.log('釣魚區域被點擊，當前階段:', fishingStage);
                             if (isFishing && fishCaught && fishingStage === 2) {
-                                progressValue += clickPower * (1 + currentRodPower * 0.1); // 高級釣竿增加點擊效果
+                                // 計算點擊力量（包括藥水效果）
+                                progressValue += clickPower * (1 + currentRodPower * 0.1) * activePotions.power; // 高級釣竿增加點擊效果 + 藥水效果
                                 console.log('進度增加，當前進度:', progressValue);
                                 if (progressValue > 100) progressValue = 100;
                                 progressBar.style.width = progressValue + '%';
@@ -597,12 +691,12 @@
             const locationFishes = fishes[gameData.currentLocation];
             let totalChance = 0;
             
-            // 計算運氣加成後的機率
+            // 計算運氣加成後的機率（包括藥水效果）
             locationFishes.forEach(fish => {
                 let adjustedChance = fish.chance;
                 if (fish.rarity !== "*極限") {
-                    // 運氣加成：高級釣竿增加稀有魚的機率
-                    adjustedChance *= (1 + currentRodLuck * 0.1);
+                    // 運氣加成：高級釣竿加成 + 藥水加成
+                    adjustedChance *= (1 + currentRodLuck * 0.1 + activePotions.luck);
                 }
                 totalChance += adjustedChance;
             });
@@ -613,7 +707,7 @@
             for (const fish of locationFishes) {
                 let adjustedChance = fish.chance;
                 if (fish.rarity !== "*極限") {
-                    adjustedChance *= (1 + currentRodLuck * 0.1);
+                    adjustedChance *= (1 + currentRodLuck * 0.1 + activePotions.luck);
                 }
                 sum += adjustedChance;
                 if (random <= sum) {
@@ -646,6 +740,23 @@
                 const rodButton = document.getElementById('rodButton');
                 
                 console.log('完成釣魚函數被調用，成功狀態:', success);
+                
+                // 更新藥水使用次數
+                if (potionUsesRemaining.luck > 0) {
+                    potionUsesRemaining.luck--;
+                    if (potionUsesRemaining.luck === 0) {
+                        activePotions.luck = 0;
+                        gameAlert('幸運藥水效果已耗盡！', 'info', '藥水效果', 2000);
+                    }
+                }
+                
+                if (potionUsesRemaining.power > 0) {
+                    potionUsesRemaining.power--;
+                    if (potionUsesRemaining.power === 0) {
+                        activePotions.power = 1; // 重置為默認值
+                        gameAlert('力量藥水效果已耗盡！', 'info', '藥水效果', 2000);
+                    }
+                }
                 
                 // 確保清除所有計時器
                 if (progressInterval) {
@@ -831,6 +942,49 @@
             }
         }
 
+        // 購買藥水
+        function buyPotion(potion) {
+            if (gameData.money >= potion.price) {
+                gameData.money -= potion.price;
+                
+                // 使用GameData模組添加藥水到背包
+                GameData.addPotionToInventory(potion.id);
+                
+                updateInventory();
+                gameAlert(`成功購買 ${potion.name}！`, 'success', '購買成功', 3000);
+                
+                if (typeof autoSaveGame === 'function') {
+                    autoSaveGame();
+                }
+            }
+        }
+        
+        // 使用藥水
+        function usePotion(potionIndex) {
+            const potion = gameData.potions[potionIndex];
+            
+            if (potion) {
+                // 應用藥水效果
+                if (potion.effect.type === 'luck') {
+                    activePotions.luck = potion.effect.value;
+                    potionUsesRemaining.luck = potion.effect.duration;
+                    gameAlert(`已使用 ${potion.name}，釣魚運氣提升 ${potion.effect.value * 100}%，持續 ${potion.effect.duration} 次釣魚！`, 'success', '藥水效果', 3000);
+                } else if (potion.effect.type === 'power') {
+                    activePotions.power = potion.effect.value;
+                    potionUsesRemaining.power = potion.effect.duration;
+                    gameAlert(`已使用 ${potion.name}，點擊力量提升為 ${potion.effect.value} 倍，持續 ${potion.effect.duration} 次釣魚！`, 'success', '藥水效果', 3000);
+                }
+                
+                // 從背包中移除藥水，使用GameData模組
+                GameData.removePotionFromInventory(potionIndex);
+                updateInventory();
+                
+                if (typeof autoSaveGame === 'function') {
+                    autoSaveGame();
+                }
+            }
+        }
+        
         // 更新背包顯示 - 設為全局函數
         window.updateInventory = function() {
             const inventoryList = document.getElementById('inventoryList');
@@ -840,8 +994,68 @@
             document.getElementById('currentRod').textContent = gameData.currentRod.name;
             document.getElementById('money').textContent = gameData.money;
             
+            // 顯示活躍藥水效果
+            let activeEffectsHtml = '';
+            if (potionUsesRemaining.luck > 0) {
+                activeEffectsHtml += `<div style="color: #ff9800; margin-bottom: 5px;">🧪 幸運加成: +${activePotions.luck * 100}% (剩餘 ${potionUsesRemaining.luck} 次)</div>`;
+            }
+            if (potionUsesRemaining.power > 0 && activePotions.power > 1) {
+                activeEffectsHtml += `<div style="color: #ff9800; margin-bottom: 5px;">⚡ 力量加成: ${activePotions.power}倍 (剩餘 ${potionUsesRemaining.power} 次)</div>`;
+            }
+            
+            if (activeEffectsHtml) {
+                const activeEffectsDiv = document.createElement('div');
+                activeEffectsDiv.style.padding = '8px';
+                activeEffectsDiv.style.marginBottom = '10px';
+                activeEffectsDiv.style.backgroundColor = '#f5f5f5';
+                activeEffectsDiv.style.borderRadius = '5px';
+                activeEffectsDiv.style.borderLeft = '3px solid #ff9800';
+                activeEffectsDiv.innerHTML = `<div style="font-weight: bold; margin-bottom: 5px;">活躍效果:</div>${activeEffectsHtml}`;
+                inventoryList.appendChild(activeEffectsDiv);
+            }
+            
+            // 顯示藥水
+            if (gameData.potions && gameData.potions.length > 0) {
+                const potionsDiv = document.createElement('div');
+                potionsDiv.style.marginBottom = '15px';
+                potionsDiv.innerHTML = '<div style="font-weight: bold; margin-bottom: 5px;">藥水:</div>';
+                
+                gameData.potions.forEach((potion, index) => {
+                    const potionDiv = document.createElement('div');
+                    potionDiv.className = 'potion-item';
+                    potionDiv.style.padding = '8px';
+                    potionDiv.style.marginBottom = '5px';
+                    
+                    const potionInfo = document.createElement('div');
+                    potionInfo.style.display = 'flex';
+                    potionInfo.style.alignItems = 'center';
+                    
+                    const icon = document.createElement('span');
+                    icon.style.marginRight = '8px';
+                    icon.style.fontSize = '20px';
+                    icon.textContent = potion.icon;
+                    potionInfo.appendChild(icon);
+                    
+                    const nameDesc = document.createElement('div');
+                    nameDesc.innerHTML = `<div style="font-weight: bold;">${potion.name}</div><div style="font-size: 0.9em; color: #666;">${potion.description}</div>`;
+                    potionInfo.appendChild(nameDesc);
+                    
+                    potionDiv.appendChild(potionInfo);
+                    
+                    const useButton = document.createElement('button');
+                    useButton.className = 'use-potion-btn';
+                    useButton.textContent = '使用';
+                    useButton.onclick = () => usePotion(index);
+                    potionDiv.appendChild(useButton);
+                    
+                    potionsDiv.appendChild(potionDiv);
+                });
+                
+                inventoryList.appendChild(potionsDiv);
+            }
+            
             // 如果背包為空，顯示提示信息
-            if (gameData.inventory.length === 0) {
+            if (gameData.inventory.length === 0 && (!gameData.potions || gameData.potions.length === 0)) {
                 const emptyDiv = document.createElement('div');
                 emptyDiv.textContent = '背包是空的，去釣些魚吧！';
                 emptyDiv.style.fontStyle = 'italic';
@@ -950,10 +1164,122 @@
         }
         
         // 商店功能
-        function openShop() {
-            const shopModal = document.getElementById('shopModal');
+        let currentShopTab = 'rod'; // 默認顯示釣竿標籤頁
+        
+        // 切換商店標籤頁
+        function switchShopTab(tab) {
+            currentShopTab = tab;
+            
+            // 更新標籤頁樣式
+            document.getElementById('rodTab').classList.toggle('active', tab === 'rod');
+            document.getElementById('potionTab').classList.toggle('active', tab === 'potion');
+            
+            // 重新加載商店物品
+            loadShopItems();
+        }
+        
+        // 加載商店物品
+        function loadShopItems() {
             const shopItems = document.getElementById('shopItems');
             shopItems.innerHTML = '';
+            
+            if (currentShopTab === 'rod') {
+                // 顯示釣竿物品
+                rods.forEach(rod => {
+                    if (rod.name !== gameData.currentRod.name) {
+                        const div = document.createElement('div');
+                        div.style.padding = '10px';
+                        div.style.margin = '8px 0';
+                        div.style.borderRadius = '5px';
+                        div.style.backgroundColor = '#f9f9f9';
+                        div.style.display = 'flex';
+                        div.style.justifyContent = 'space-between';
+                        div.style.alignItems = 'center';
+                        
+                        const rodInfo = document.createElement('span');
+                        rodInfo.innerHTML = `<strong>${rod.name}</strong><br>${rod.price}金幣`;
+                        div.appendChild(rodInfo);
+                        
+                        // 檢查釣竿是否已解鎖
+                        const isUnlocked = gameData.unlockedRods.includes(rod.name);
+                        
+                        const button = document.createElement('button');
+                        
+                        if (isUnlocked) {
+                            // 已解鎖釣竿顯示藍色「切換」按鈕
+                            button.textContent = '切換';
+                            button.style.backgroundColor = '#2196F3';
+                            button.onclick = () => switchRod(rod);
+                        } else {
+                            // 未解鎖釣竿顯示「購買」按鈕
+                            button.textContent = '購買';
+                            button.onclick = () => buyRod(rod);
+                            button.disabled = gameData.money < rod.price;
+                            if (gameData.money < rod.price) {
+                                button.style.opacity = '0.5';
+                                button.style.cursor = 'not-allowed';
+                            }
+                        }
+                        
+                        div.appendChild(button);
+                        shopItems.appendChild(div);
+                    }
+                });
+            } else if (currentShopTab === 'potion') {
+                // 顯示藥水物品，使用GameData模組獲取藥水數據
+                GameData.getAllPotions().forEach(potion => {
+                    const div = document.createElement('div');
+                    div.className = 'potion-item';
+                    
+                    const infoDiv = document.createElement('div');
+                    infoDiv.className = 'potion-info';
+                    
+                    const icon = document.createElement('span');
+                    icon.className = 'potion-icon';
+                    icon.textContent = potion.icon;
+                    infoDiv.appendChild(icon);
+                    
+                    const textDiv = document.createElement('div');
+                    
+                    const name = document.createElement('div');
+                    name.className = 'potion-name';
+                    name.textContent = potion.name;
+                    textDiv.appendChild(name);
+                    
+                    const desc = document.createElement('div');
+                    desc.className = 'potion-description';
+                    desc.textContent = potion.description;
+                    textDiv.appendChild(desc);
+                    
+                    infoDiv.appendChild(textDiv);
+                    div.appendChild(infoDiv);
+                    
+                    const priceDiv = document.createElement('div');
+                    priceDiv.className = 'potion-price';
+                    priceDiv.textContent = `${potion.price} 金幣`;
+                    
+                    const buttonDiv = document.createElement('div');
+                    
+                    const buyButton = document.createElement('button');
+                    buyButton.textContent = '購買';
+                    buyButton.onclick = () => buyPotion(potion);
+                    buyButton.disabled = gameData.money < potion.price;
+                    if (gameData.money < potion.price) {
+                        buyButton.style.opacity = '0.5';
+                        buyButton.style.cursor = 'not-allowed';
+                    }
+                    
+                    buttonDiv.appendChild(buyButton);
+                    div.appendChild(buttonDiv);
+                    div.appendChild(priceDiv);
+                    
+                    shopItems.appendChild(div);
+                });
+            }
+        }
+        
+        function openShop() {
+            const shopModal = document.getElementById('shopModal');
             
             // 添加點擊空白區域關閉功能
             shopModal.onclick = (e) => {
@@ -966,59 +1292,19 @@
             if (!gameData.unlockedRods) {
                 gameData.unlockedRods = ["新手釣竿"];
             }
+            
+            // 確保potions數組存在於遊戲數據中
+            if (!gameData.potions) {
+                gameData.potions = [];
+            }
 
-            // 添加console.log來調試
-            console.log('打開商店，商店模態框:', shopModal);
-            console.log('當前遊戲數據:', gameData);
-
-            rods.forEach(rod => {
-                if (rod.name !== gameData.currentRod.name) {
-                    const div = document.createElement('div');
-                    div.style.padding = '10px';
-                    div.style.margin = '8px 0';
-                    div.style.borderRadius = '5px';
-                    div.style.backgroundColor = '#f9f9f9';
-                    div.style.display = 'flex';
-                    div.style.justifyContent = 'space-between';
-                    div.style.alignItems = 'center';
-                    
-                    const rodInfo = document.createElement('span');
-                    rodInfo.innerHTML = `<strong>${rod.name}</strong><br>${rod.price}金幣`;
-                    div.appendChild(rodInfo);
-                    
-                    // 檢查釣竿是否已解鎖
-                    const isUnlocked = gameData.unlockedRods.includes(rod.name);
-                    
-                    const button = document.createElement('button');
-                    
-                    if (isUnlocked) {
-                        // 已解鎖釣竿顯示藍色「切換」按鈕
-                        button.textContent = '切換';
-                        button.style.backgroundColor = '#2196F3';
-                        button.onclick = () => switchRod(rod);
-                    } else {
-                        // 未解鎖釣竿顯示「購買」按鈕
-                        button.textContent = '購買';
-                        button.onclick = () => buyRod(rod);
-                        button.disabled = gameData.money < rod.price;
-                        if (gameData.money < rod.price) {
-                            button.style.opacity = '0.5';
-                            button.style.cursor = 'not-allowed';
-                        }
-                    }
-                    
-                    div.appendChild(button);
-                    shopItems.appendChild(div);
-                }
-            });
+            // 加載商店物品
+            loadShopItems();
 
             shopModal.style.display = 'flex';
             // 添加動畫效果
             setTimeout(() => {
                 shopModal.classList.add('show');
-                // 添加調試信息
-                console.log('添加show類後的商店模態框:', shopModal);
-                console.log('商店模態框樣式:', window.getComputedStyle(shopModal));
             }, 10);
         }
 

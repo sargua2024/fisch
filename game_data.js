@@ -129,18 +129,52 @@ const travelCosts = {
     冰湖: 200
 };
 
+// 藥水數據
+const potions = [
+    {
+        id: 'luck_potion_1',
+        name: '幸運藥水 I',
+        description: '增加25%的釣魚運氣',
+        price: 200,
+        icon: '🧪',
+        effect: { type: 'luck', value: 0.25, duration: 5 } // 持續5次釣魚
+    },
+    {
+        id: 'luck_potion_2',
+        name: '幸運藥水 II',
+        description: '增加50%的釣魚運氣',
+        price: 500,
+        icon: '🧪',
+        effect: { type: 'luck', value: 0.5, duration: 5 } // 持續5次釣魚
+    },
+    {
+        id: 'quick_hook_potion_1',
+        name: '快速上鉤藥水 I',
+        description: '點擊進度條時獲得雙倍力量加成',
+        price: 300,
+        icon: '⚡',
+        effect: { type: 'power', value: 2, duration: 3 } // 持續3次釣魚
+    }
+];
+
+
 // 導出遊戲數據
 window.GameData = {
     default: gameDataDefault,
     rods: rods,
     fishes: fishes,
     travelCosts: travelCosts,
+    potions: potions,
     
     // 初始化遊戲數據
     initGameData: function() {
         // 如果window.gameData不存在，則初始化為默認值
         if (!window.gameData) {
             window.gameData = JSON.parse(JSON.stringify(this.default));
+            // 確保potions數組存在
+            if (!window.gameData.potions) {
+                window.gameData.potions = [];
+            }
         }
         return window.gameData;
     },
@@ -168,5 +202,43 @@ window.GameData = {
     // 檢查是否已解鎖釣竿
     isRodUnlocked: function(rodName) {
         return window.gameData.unlockedRods.includes(rodName);
+    },
+    
+    // 獲取所有藥水數據
+    getAllPotions: function() {
+        return this.potions;
+    },
+    
+    // 根據ID獲取藥水數據
+    getPotionById: function(id) {
+        return this.potions.find(potion => potion.id === id);
+    },
+    
+    // 添加藥水到玩家背包
+    addPotionToInventory: function(potionId) {
+        const potion = this.getPotionById(potionId);
+        if (potion) {
+            if (!window.gameData.potions) {
+                window.gameData.potions = [];
+            }
+            window.gameData.potions.push({
+                id: potion.id,
+                name: potion.name,
+                description: potion.description,
+                icon: potion.icon,
+                effect: potion.effect
+            });
+            return true;
+        }
+        return false;
+    },
+    
+    // 從玩家背包中移除藥水
+    removePotionFromInventory: function(index) {
+        if (window.gameData.potions && index >= 0 && index < window.gameData.potions.length) {
+            window.gameData.potions.splice(index, 1);
+            return true;
+        }
+        return false;
     }
 };
